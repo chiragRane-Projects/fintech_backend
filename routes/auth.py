@@ -1,49 +1,50 @@
 from fastapi import APIRouter, HTTPException
+from datetime import datetime
 from ..models.auth import RegisterRequest, LoginRequest
 from ..utils.auth import get_password_hash, verify_password
 from ..utils.mongo import get_database
 
-router = APIRouter(tags=['Auth'])
+router = APIRouter(tags=["Auth"])
 
 @router.post("/register")
-async def register_user(user: RegisterRequest):
+async def register_user(data: RegisterRequest):
     db = get_database()
-    
-    userExists = await db.users.find_one({"email": user.email})
-    
-    if userExists:
-        raise HTTPException(status_code=400, detail="Email already resgistered")
-    
-    hash_pwd = get_password_hash(user.password_hash)
-    
+
+    existing = await db.users.find_one({"email": data.email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    password_hash = get_password_hash(data.password)
+
     user_doc = {
-        "name": user.name,
-        "email": user.email,
-        "password_hash": hash_pwd,
-        "monthly_income": user.monthly_income,
-        "occupation": user.occupation
+        "name": data.name,
+        "email": data.email,
+        "password_hash": password_hash,
+        "monthly_income": data.monthly_income,
+        "occupation": data.occupation,
+        "created_at": datetime.utcnow()
     }
-    
+
     result = await db.users.insert_one(user_doc)
-    
+
     return {
         "user_id": str(result.inserted_id),
         "message": "Registration successful"
     }
-    
+
+
 @router.post("/login")
-async def login_user(user: LoginRequest):
+async def login_user(data: LoginRequest):
     db = get_database()
-    
-    user = await db.users.find_one({"email": user.email})
-    
-    if not user: 
-        raise HTTPException(status_code=400, detail="Invalid email")
-    
-    if not verify_password(user.password, user['password_hash']):
-        raise HTTPException(status_code=400, detail="Invalid credentials")
-    
+
+    user_doc = await db.users.find_one({"email": data.email})
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not verify_password(data.password, user_doc["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
     return {
-        "user_id": str(user["_id"]),
+        "user_id": str(user_doc["_id"]),
         "message": "Login successful"
     }

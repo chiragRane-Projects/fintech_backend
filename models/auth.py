@@ -3,7 +3,7 @@ from pydantic import BaseModel, EmailStr
 class RegisterRequest(BaseModel):
     name: str
     email: EmailStr
-    password_hash: str
+    password: str
     monthly_income: float
     occupation: str
 
