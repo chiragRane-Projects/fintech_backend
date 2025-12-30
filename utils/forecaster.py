@@ -1,13 +1,9 @@
-def predict_next_month_expense(
-    last_months: list[float],
-    momentum: float,
-    volatility: float
-) -> float:
-    weights = [0.5, 0.3, 0.2][:len(last_months)]
-    base = sum(m * w for m,w in zip(last_months, weights))
-    
-    trend_adjustment = base * momentum
-    noise_penalty = base * volatility * 0.3
-    
-    prediction = base + trend_adjustment - noise_penalty
-    return round(max(prediction, 0), 2)
+def predict_next_month_expense(history, momentum, volatility):
+    weights = [0.5, 0.3, 0.2]
+    base = sum(h * w for h, w in zip(history, weights))
+
+    momentum_factor = 1 + max(min(momentum, 0.3), -0.2)
+    volatility_penalty = 1 - min(volatility * 0.3, 0.4)
+
+    prediction = base * momentum_factor * volatility_penalty
+    return round(prediction, 2)
