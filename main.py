@@ -6,6 +6,7 @@ from .routes.auth import router as auth_router
 from .routes.expense import router as expense_router
 from .routes.intelligence import router as intelligence_router
 from .routes.prediction import router as prediction_router
+from .routes.ai_explainer import router as ai_explainer_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,3 +32,4 @@ app.include_router(auth_router, prefix="/auth")
 app.include_router(expense_router, prefix="/expense")
 app.include_router(intelligence_router, prefix="/intelligence")
 app.include_router(prediction_router, prefix="/prediction")
+app.include_router(ai_explainer_router, prefix="/ai_explainer")
